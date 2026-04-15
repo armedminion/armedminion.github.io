@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>armedminion | Backend & Architecture</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Palette Requirements */
+            --bg: #020202;
+            --surf-1: #111111;
+            --surf-2: #222222;
+            --text-main: #ffffff;
+            --text-mute: #999999;
+            --accent: #007bff; /* Electric Blue */
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            --anim-curve: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: auto; /* Managed by JS for custom feel if needed, but smooth scrolling can cause conflicts with observer sometimes, relying on native is fine */
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+            
+            /* Modular Grid Background */
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            background-attachment: fixed;
+        }
+
+        ::selection {
+            background-color: var(--accent);
+            color: #fff;
+        }
+
+        .mono { font-family: var(--font-mono); }
+        .accent { color: var(--accent); }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Buttons & Interactions */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            background: var(--text-main);
+            color: var(--bg);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s var(--anim-curve), box-shadow 0.3s var(--anim-curve);
+        }
+
+        .btn:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.4);
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* Scroll Reveal Utility */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s var(--anim-curve), transform 0.8s var(--anim-curve);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- Navbar --- */
+        nav {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            background: rgba(2, 2, 2, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--surf-2);
+            z-index: 1000;
+            transition: padding 0.3s ease;
+            padding: 1.5rem 0;
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--text-main);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span { color: var(--accent); }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+
+        .nav-links a {
+            color: var(--text-mute);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--text-main);
+        }
+
+        .nav-links a::before {
+            content: '>';
+            position: absolute;
+            left: -14px;
+            color: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-links a:hover::before, .nav-links a.active::before {
+            opacity: 1;
+        }
+
+        /* --- Sections Core --- */
+        section {
+            padding: 8rem 0;
+            border-bottom: 1px solid var(--surf-1);
+        }
+
+        .sec-header {
+            font-family: var(--font-mono);
+            font-size: 2rem;
+            margin-bottom: 4rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .sec-header span.num {
+            color: var(--surf-2);
+            font-size: 1.5rem;
+        }
+
+        /* --- Hero --- */
+        #hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 6rem;
+            border-bottom: none;
+        }
+
+        .hero-status {
+            font-family: var(--font-mono);
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 6vw, 5.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -2px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Typewriter Cursor */
+        .cursor {
+            display: inline-block;
+            width: 0.5ch;
+            height: 1em;
+            background-color: var(--text-main);
+            vertical-align: bottom;
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .hero-sub {
+            font-size: 1.25rem;
+            color: var(--text-mute);
+            max-width: 600px;
+            margin-bottom: 3rem;
+        }
+
+        /* --- Expertise --- */
+        .stack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .stack-col {
+            background: var(--surf-1);
+            padding: 3rem 2rem;
+            border-top: 2px solid var(--surf-2);
+            transition: border-color 0.3s ease;
+        }
+
+        .stack-col:hover {
+            border-top-color: var(--accent);
+        }
+
+        .stack-col h3 {
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+        }
+
+        .stack-list {
+            list-style: none;
+        }
+
+        .stack-list li {
+            color: var(--text-mute);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .stack-list li::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--accent);
+            display: inline-block;
+        }
+
+        /* --- Works --- */
+        .works-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .work-card {
+            background: var(--surf-1);
+            border: 1px solid var(--surf-2);
+            padding: 3rem;
+            position: relative;
+            transition: all 0.4s var(--anim-curve);
+        }
+
+        /* Edge Glow on Hover */
+        .work-card::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: linear-gradient(135deg, var(--accent), transparent 60%);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.4s var(--anim-curve);
+        }
+
+        .work-card:hover {
+            transform: translateY(-5px);
+            background: #141414;
+        }
+
+        .work-card:hover::after {
+            opacity: 1;
+        }
+
+        .work-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .work-desc {
+            color: var(--text-mute);
+            margin-bottom: 2rem;
+        }
+
+        .work-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+        }
+
+        .work-tags span {
+            background: var(--surf-2);
+            padding: 0.4rem 0.8rem;
+            color: var(--text-main);
+        }
+
+        /* --- Process --- */
+        .process-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .process-step {
+            display: flex;
+            align-items: center;
+            padding: 2rem;
+            background: var(--surf-1);
+            border-left: 2px solid var(--surf-2);
+            transition: all 0.3s ease;
+        }
+
+        .process-step:hover {
+            border-left-color: var(--accent);
+            background: #151515;
+            transform: translateX(10px);
+        }
+
+        .p-num {
+            font-family: var(--font-mono);
+            color: var(--accent);
+            font-size: 1.2rem;
+            min-width: 60px;
+        }
+
+        .p-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            min-width: 200px;
+        }
+
+        /* --- FAQ --- */
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--surf-2);
+            padding-bottom: 1.5rem;
+        }
+
+        .faq-q {
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            color: var(--accent);
+            margin-bottom: 0.8rem;
+        }
+
+        .faq-a {
+            color: var(--text-mute);
+        }
+
+        /* --- Terms & Contact --- */
+        .tos {
+            background: var(--surf-1);
+            padding: 3rem;
+            border: 1px solid var(--surf-2);
+            margin-bottom: 4rem;
+        }
+        
+        .tos h3 {
+            font-family: var(--font-mono);
+            margin-bottom: 1.5rem;
+        }
+
+        .tos ul {
+            list-style: none;
+            color: var(--text-mute);
+        }
+        
+        .tos ul li { margin-bottom: 1rem; }
+        .tos ul li strong { color: var(--text-main); }
+
+        footer {
+            padding: 6rem 0;
+            text-align: center;
+            border-top: 1px solid var(--surf-1);
+        }
+
+        .footer-logo {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .copy-tag {
+            background: var(--surf-1);
+            padding: 0.8rem 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--text-main);
+            border: 1px solid var(--surf-2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-tag:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .process-step { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .p-num { min-width: auto; }
+            .p-title { min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="container nav-inner">
+            <a href="#" class="logo">minion<span>_</span></a>
+            <div class="nav-links">
+                <a href="#hero" data-nav="hero">//A B O U T</a>
+                <a href="#expertise" data-nav="expertise">//E X P E R T I S E</a>
+                <a href="#works" data-nav="works">//W O R K</a>
+                <a href="#process" data-nav="process">//P R O C E S S</a>
+                <a href="#faq" data-nav="faq">//F A Q</a>
+                <a href="#terms" data-nav="terms">//T E R M S</a>
+            </div>
+        </div>
+    </nav>
+
+    <section id="hero">
+        <div class="container">
+            <span class="hero-status">// SYSTEM READY</span>
+            <h1 class="hero-title">
+                <span id="typewriter-text"></span><span class="cursor"></span>
+            </h1>
+            <p class="hero-desc reveal">
+                Engineering secure, high-performance Luau backends & exploit-proof architectures.
+            </p>
+            <div class="reveal" style="transition-delay: 0.2s;">
+                <a href="#contact" class="btn">Initialize Contact <span style="margin-left: 10px; font-family: sans-serif;">&rarr;</span></a>
+            </div>
+        </div>
+    </section>
+
+    <section id="expertise">
+        <div class="container">
+            <h2 class="sec-header reveal"><span class="num">01.</span> Expertise</h2>
+            <div class="stack-grid">
+                <div class="stack-col reveal" style="transition-delay: 0.1s;">
+                    <h3>Backend</h3>
+                    <ul class="stack-list">
+                        <li>DataStore Architectures</li>
+                        <li>Session Mgmt & Caching</li>
+                        <li>HttpService & Webhooks</li>
+                        <li>Cross-Server Messaging</li>
+                    </ul>
+                </div>
+                <div class="stack-col reveal" style="transition-delay: 0.2s;">
+                    <h3>Gameplay</h3>
+                    <ul class="stack-list">
+                        <li>CFrame Math & Rotations</li>
+                        <li>Spatial Queries</li>
+                        <li>AssemblyLinearVelocity</li>
+                        <li>Custom Ability Systems</li>
+                    </ul>
+                </div>
+                <div class="stack-col reveal" style="transition-delay: 0.3s;">
+                    <h3>Security</h3>
+                    <ul class="stack-list">
+                        <li>Server-Authoritative Logic</li>
+                        <li>Remote Event Validation</li>
+                        <li>Anti-Cheat Prototypes</li>
+                        <li>Exploit Prevention</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="works">
+        <div class="container">
+            <h2 class="sec-header reveal"><span class="num">02.</span> Works</h2>
+            <div class="works-grid">
+                <div class="work-card reveal">
+                    <h3 class="work-title">Discord Integrations</h3>
+                    <p class="work-desc">Full server-authoritative logic. Seamless bridge between Roblox instances and Discord servers maintaining strict request latency limits.</p>
+                    <div class="work-tags">
+                        <span>HttpService</span>
+                        <span>API Design</span>
+                        <span>Webhooks</span>
+                    </div>
+                </div>
+                <div class="work-card reveal" style="transition-delay: 0.1s;">
+                    <h3 class="work-title">Data Management</h3>
+                    <p class="work-desc">Custom caching, failure recovery, and session locking protocols to guarantee 99.9% uptime and zero data wipes across edge cases.</p>
+                    <div class="work-tags">
+                        <span>DataStores</span>
+                        <span>Caching</span>
+                        <span>Serialization</span>
+                    </div>
+                </div>
+                <div class="work-card reveal" style="transition-delay: 0.2s;">
+                    <h3 class="work-title">Physics Mechanics</h3>
+                    <p class="work-desc">Advanced combat and movement abilities using AssemblyLinearVelocity manipulation. Highly responsive client-side prediction.</p>
+                    <div class="work-tags">
+                        <span>Vector3 Math</span>
+                        <span>Kinematics</span>
+                        <span>Replication</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="process">
+        <div class="container">
+            <h2 class="sec-header reveal"><span class="num">03.</span> Process</h2>
+            <div class="process-grid">
+                <div class="process-step reveal">
+                    <span class="p-num">01.</span>
+                    <span class="p-title">Initial Brief</span>
+                    <span class="p-desc">Analyzing constraints, requirements, and evaluating technical feasibility.</span>
+                </div>
+                <div class="process-step reveal">
+                    <span class="p-num">02.</span>
+                    <span class="p-title">Architecture</span>
+                    <span class="p-desc">Drafting the structural blueprint and deciding on the optimal patterns.</span>
+                </div>
+                <div class="process-step reveal">
+                    <span class="p-num">03.</span>
+                    <span class="p-title">Development</span>
+                    <span class="p-desc">Writing clean, <span class="mono">--!strict</span> Luau code focused on performance and security.</span>
+                </div>
+                <div class="process-step reveal">
+                    <span class="p-num">04.</span>
+                    <span class="p-title">Live Demo</span>
+                    <span class="p-desc">Showcasing the implemented systems in a controlled test environment.</span>
+                </div>
+                <div class="process-step reveal">
+                    <span class="p-num">05.</span>
+                    <span class="p-title">Payment Phase</span>
+                    <span class="p-desc">Securing the financial transaction prior to final delivery.</span>
+                </div>
+                <div class="process-step reveal">
+                    <span class="p-num">06.</span>
+                    <span class="p-title">File Handoff</span>
+                    <span class="p-desc">Transferring the uncopylocked place or structured file package.</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq">
+        <div class="container">
+            <h2 class="sec-header reveal"><span class="num">04.</span> FAQ</h2>
+            <div class="faq-grid">
+                <div class="faq-item reveal">
+                    <div class="faq-q">> What payment methods are accepted?</div>
+                    <div class="faq-a">I accept Robux (Group Funds or DevEx rates) and Cryptocurrency via USDT (TRC20).</div>
+                </div>
+                <div class="faq-item reveal" style="transition-delay: 0.1s;">
+                    <div class="faq-q">> Do you design User Interfaces?</div>
+                    <div class="faq-a">No. I am strictly focusing on backend, systems architecture, and core mechanics.</div>
+                </div>
+                <div class="faq-item reveal" style="transition-delay: 0.2s;">
+                    <div class="faq-q">> What is the ETA for a project?</div>
+                    <div class="faq-a">It heavily depends on the scope. A precise timeline is provided after the blueprint phase.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="terms">
+        <div class="container">
+            <h2 class="sec-header reveal"><span class="num">05.</span> Terms</h2>
+            <div class="tos reveal">
+                <h3>Terms of Service</h3>
+                <ul>
+                    <li><strong>1. Upfront Payment.</strong> Development begins only after a deposit or agreed milestone structure is funded.</li>
+                    <li><strong>2. Final Delivery.</strong> Systems remain locked until final payment is successfully transferred.</li>
+                    <li><strong>3. Technical Warranty.</strong> Post-launch bugs originating from my logic are fixed free of charge. Structural scope changes are billed.</li>
+                    <li><strong>4. Clean Code.</strong> All scripts are delivered highly optimized, commented, and typed via <span class="mono">--!strict</span>.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <div class="container reveal">
+            <span class="footer-logo">armedminion_</span>
+            <p style="color: var(--text-mute); margin-bottom: 2rem;">Ready to upgrade your infrastructure?</p>
+            
+            <button class="copy-tag" onclick="copyDiscord()" id="discordBtn">
+                Copy Discord: armedminion
+            </button>
+            
+            <div style="margin-top: 4rem; font-family: var(--font-mono); font-size: 0.8rem; color: #444;">
+                &copy; 2026 armedminion // Core Systems Operational.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts for Animations -->
+    <script>
+        // TYPEWRITER EFFECT
+        const textElement = document.getElementById("typewriter-text");
+        const words = "> armedminion_";
+        let i = 0;
+
+        function typeWriter() {
+            if (i < words.length) {
+                textElement.innerHTML += words.charAt(i);
+                i++;
+                setTimeout(typeWriter, 100);
+            }
+        }
+
+        // Delay typing until page loads visually
+        setTimeout(typeWriter, 400);
+
+
+        // INTERSECTION OBSERVER FOR SCROLL REVEAL
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+
+        // STICKY NAV SCROLL HIGHLIGHT
+        const sections = document.querySelectorAll("section");
+        const navLinks = document.querySelectorAll(".nav-links a");
+
+        window.addEventListener("scroll", () => {
+            let current = "";
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - sectionHeight / 3)) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove("active");
+                if (link.getAttribute("data-nav") === current) {
+                    link.classList.add("active");
+                }
+            });
+            
+            // Adjust navbar styling on scroll
+            const nav = document.getElementById("navbar");
+            if (window.scrollY > 50) {
+                nav.style.padding = "1rem 0";
+                nav.style.boxShadow = "0 10px 30px rgba(0,0,0,0.5)";
+            } else {
+                nav.style.padding = "1.5rem 0";
+                nav.style.boxShadow = "none";
+            }
+        });
+
+
+        // COPY TO CLIPBOARD
+        function copyDiscord() {
+            navigator.clipboard.writeText("armedminion").then(() => {
+                const btn = document.getElementById("discordBtn");
+                const originalText = btn.innerText;
+                btn.innerText = "COPIED TO CLIPBOARD!";
+                btn.style.borderColor = "var(--accent)";
+                btn.style.color = "var(--accent)";
+                
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.borderColor = "var(--surf-2)";
+                    btn.style.color = "var(--text-main)";
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
