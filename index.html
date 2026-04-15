@@ -28,7 +28,7 @@
         }
 
         html {
-            scroll-behavior: auto; /* Managed by JS for custom feel if needed, but smooth scrolling can cause conflicts with observer sometimes, relying on native is fine */
+            scroll-behavior: auto; 
         }
 
         body {
@@ -284,6 +284,8 @@
             padding: 3rem;
             position: relative;
             transition: all 0.4s var(--anim-curve);
+            display: flex;
+            flex-direction: column;
         }
 
         /* Edge Glow on Hover */
@@ -305,6 +307,21 @@
         .work-card:hover::after {
             opacity: 1;
         }
+        
+        /* Изображения (GIF) для проектов */
+        .work-img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--surf-2);
+            transition: border-color 0.4s var(--anim-curve);
+        }
+
+        .work-card:hover .work-img {
+            border-color: var(--accent);
+        }
 
         .work-title {
             font-size: 1.5rem;
@@ -314,6 +331,7 @@
         .work-desc {
             color: var(--text-mute);
             margin-bottom: 2rem;
+            flex-grow: 1;
         }
 
         .work-tags {
@@ -518,6 +536,7 @@
             <h2 class="sec-header reveal"><span class="num">02.</span> Works</h2>
             <div class="works-grid">
                 <div class="work-card reveal">
+                    <img src="https://cdn.discordapp.com/attachments/1493943568275079258/1493943718649139392/0415-ezgif.com-video-to-gif-converter.gif?ex=69e0cf02&is=69df7d82&hm=f451577b8e9be8e25e7d4f27f9348fbcc1096600b5eaf2c36e6a16cb99d8dfc2&" alt="Discord Integrations Demo" class="work-img">
                     <h3 class="work-title">Discord Integrations</h3>
                     <p class="work-desc">Full server-authoritative logic. Seamless bridge between Roblox instances and Discord servers maintaining strict request latency limits.</p>
                     <div class="work-tags">
@@ -527,6 +546,7 @@
                     </div>
                 </div>
                 <div class="work-card reveal" style="transition-delay: 0.1s;">
+                    <img src="https://cdn.discordapp.com/attachments/1493943568275079258/1493950321737859072/04151-ezgif.com-video-to-gif-converter.gif?ex=69e0d528&is=69df83a8&hm=b122d6fd0e6fd3b16dcb0af8cb7549d4cd17a68882eadf9cacabf63ed9491725&" alt="Data Management Demo" class="work-img">
                     <h3 class="work-title">Data Management</h3>
                     <p class="work-desc">Custom caching, failure recovery, and session locking protocols to guarantee 99.9% uptime and zero data wipes across edge cases.</p>
                     <div class="work-tags">
@@ -536,6 +556,7 @@
                     </div>
                 </div>
                 <div class="work-card reveal" style="transition-delay: 0.2s;">
+                    <img src="https://cdn.discordapp.com/attachments/1493943568275079258/1493962897246781592/04152-ezgif.com-video-to-gif-converter.gif?ex=69e0e0df&is=69df8f5f&hm=d1a29c14d997a20dc794ec8a69177b4db319ed36efa4df3eeddf5bf736c907cb&" alt="Physics Mechanics Demo" class="work-img">
                     <h3 class="work-title">Physics Mechanics</h3>
                     <p class="work-desc">Advanced combat and movement abilities using AssemblyLinearVelocity manipulation. Highly responsive client-side prediction.</p>
                     <div class="work-tags">
@@ -636,7 +657,6 @@
         </div>
     </footer>
 
-    <!-- Scripts for Animations -->
     <script>
         // TYPEWRITER EFFECT
         const textElement = document.getElementById("typewriter-text");
@@ -706,7 +726,7 @@
         });
 
 
-        // COPY TO CLIPBOARD
+        
         function copyDiscord() {
             navigator.clipboard.writeText("armedminion").then(() => {
                 const btn = document.getElementById("discordBtn");
